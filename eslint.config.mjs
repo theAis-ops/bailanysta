@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Бэкенд на Deno — линтится своими правилами, не правилами Next.
+    "supabase/**",
   ]),
 ]);
 
