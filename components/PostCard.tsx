@@ -19,6 +19,16 @@ type Props = {
 export default function PostCard({ post, myNick, myFaction, onChange, onTag }: Props) {
   const [likes, setLikes] = useState(post.likes);
   const [liked, setLiked] = useState(post.likedByMe);
+
+  // Лайк живёт в локальном состоянии, чтобы реагировать мгновенно. Но лента
+  // опрашивает сервер каждые 12 секунд, и за это время пост могли лайкнуть
+  // боты или другой человек — синхронизируем, когда серверное число изменилось.
+  const [fromServer, setFromServer] = useState({ likes: post.likes, liked: post.likedByMe });
+  if (fromServer.likes !== post.likes || fromServer.liked !== post.likedByMe) {
+    setFromServer({ likes: post.likes, liked: post.likedByMe });
+    setLikes(post.likes);
+    setLiked(post.likedByMe);
+  }
   const [flash, setFlash] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [comments, setComments] = useState<Comment[] | null>(null);
