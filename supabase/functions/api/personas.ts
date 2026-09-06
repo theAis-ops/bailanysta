@@ -160,6 +160,19 @@ function pick<T>(arr: T[], seed: number): T {
   return arr[Math.abs(seed) % arr.length];
 }
 
+/**
+ * Перемешивание с лавинным эффектом. Наивные варианты вроде `seed >> i`
+ * или `seed * 31 + i * 97` здесь не работают: первый обнуляет персонажей
+ * из конца списка, второй вырождается в цикл по индексу — и в обоих случаях
+ * половина ботов не попадает в комментарии никогда.
+ */
+function mix(seed: number, salt: number): number {
+  let h = (seed ^ Math.imul(salt, 0x9e3779b1)) >>> 0;
+  h = Math.imul(h ^ (h >>> 15), 0x85ebca6b) >>> 0;
+  h = (h ^ (h >>> 13)) >>> 0;
+  return h;
+}
+
 export function extractHashtags(body: string): string[] {
   return [...body.matchAll(/#([\p{L}\p{N}_]{2,30})/gu)]
     .map((m) => m[1].toLowerCase())
@@ -181,7 +194,7 @@ export function planBotReplies(body: string, authorFaction: string, seed: number
 
   const candidates = PERSONAS.map((p, i) => {
     const topical: string[] = [];
-    let weight = Math.abs((seed >> i) % 3);
+    let weight = mix(seed, i) % 3;
 
     for (const topic of hitTopics) {
       const forTopic = p.topics[topic];
@@ -200,22 +213,24 @@ export function planBotReplies(body: string, authorFaction: string, seed: number
     const easterEgg = hitTopics.includes("nfactorial") ? p.topics.nfactorial : undefined;
     const lines = easterEgg?.length
       ? easterEgg
-      : topical.length && (Math.abs(seed) + i) % 4 !== 0
+      : topical.length && mix(seed, i + 401) % 4 !== 0
         ? topical
         : relational;
 
     const [lo, hi] = p.delay;
     return {
       nick: p.nick,
-      body: pick(lines, seed + i * 31),
-      delaySec: lo + (Math.abs(seed * (i + 7)) % Math.max(1, hi - lo)),
-      weight,
+      body: pick(lines, mix(seed, i + 101)),
+      delaySec: lo + (mix(seed, i + 211) % Math.max(1, hi - lo)),
+      // Ничьи по весу разводим тем же хешем, иначе побеждает порядок в списке
+      // и фракции из его конца молчат.
+      score: weight * 100 + (mix(seed, i + 307) % 100),
     };
   });
 
-  const count = 2 + (Math.abs(seed) % 3); // 2..4 бота на пост
+  const count = 2 + (mix(seed, 997) % 3); // 2..4 бота на пост
   return candidates
-    .sort((a, b) => b.weight - a.weight)
+    .sort((a, b) => b.score - a.score)
     .slice(0, count)
     .sort((a, b) => a.delaySec - b.delaySec)
     .map(({ nick, body, delaySec }) => ({ nick, body, delaySec }));
