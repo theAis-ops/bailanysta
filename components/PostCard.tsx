@@ -25,10 +25,11 @@ const stroke = {
 } as const;
 
 /** Аватар-плашка: эмодзи фракции на её же цвете с прозрачностью. */
-function Ava({ id, size = 20 }: { id: FactionId; size?: number }) {
+function Ava({ id, size = 20, title }: { id: FactionId; size?: number; title?: string }) {
   const f = byId(id);
   return (
     <span
+      title={title ? `${f.name} · ${title}` : f.name}
       aria-hidden
       className="inline-flex shrink-0 items-center justify-center rounded-full"
       style={{ width: size, height: size, background: `${f.accent}26`, fontSize: 11, lineHeight: 1 }}
@@ -164,7 +165,7 @@ export default function PostCard({ post, myNick, myFaction, onChange, onTag }: P
     <article className="card rise flex overflow-hidden">
       <div className="min-w-0 flex-1 p-3.5">
         <header className="flex items-center gap-2 text-[12px]">
-          <Ava id={post.author.faction_id} />
+          <Ava id={post.author.faction_id} title={enemy ? "Чужая фракция" : "Своя фракция"} />
           <Link href={`/u/?n=${post.author.nick}`} className="font-medium text-text hover:underline">
             {post.author.nick}
           </Link>
@@ -176,11 +177,6 @@ export default function PostCard({ post, myNick, myFaction, onChange, onTag }: P
           {post.author.is_bot && (
             <span className="rounded-[2px] border border-line bg-card-2 px-1.5 py-px text-[10px] uppercase tracking-wide text-muted">
               бот
-            </span>
-          )}
-          {enemy && (
-            <span title="Другая фракция" aria-label="Другая фракция" className="text-muted">
-              ⚔
             </span>
           )}
 
