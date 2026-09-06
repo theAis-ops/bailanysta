@@ -347,7 +347,7 @@ export default function PostCard({ post, myNick, myFaction, onChange, onTag }: P
             <path d="M7 2.2 13 10H1z" />
           </svg>
         </button>
-        <span className={`text-[13px] font-bold ${liked ? "text-accent-text" : "text-text"}`}>{likes}</span>
+        <span data-votes className={`text-[13px] font-bold ${liked ? "text-accent-text" : "text-text"}`}>{likes}</span>
         <span
           aria-hidden
           title="Здесь нет минусов — только захват территории"
