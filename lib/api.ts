@@ -19,7 +19,9 @@ async function call<T>(path: string, init: RequestInit & { nick?: string | null 
         "content-type": "application/json",
         authorization: `Bearer ${KEY}`,
         apikey: KEY,
-        ...(nick ? { "x-bailanysta-nick": nick } : {}),
+        // Заголовки HTTP умеют только latin-1, а ники у нас кириллические
+        // и казахские — поэтому кодируем, сервер декодирует обратно.
+        ...(nick ? { "x-bailanysta-nick": encodeURIComponent(nick) } : {}),
         ...rest.headers,
       },
     });

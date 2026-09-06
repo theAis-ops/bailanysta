@@ -36,11 +36,20 @@ const AUTHOR_INNER = "author:users!posts_author_id_fkey!inner ( nick, faction_id
 const RANKS: [number, string][] = [[50, "Аңыз"], [20, "Батыр"], [5, "Жауынгер"], [0, "Рекрут"]];
 const rankFor = (score: number) => RANKS.find(([min]) => score >= min)![1];
 
+/** Заголовки HTTP умеют только latin-1, а ники у нас кириллические и казахские. */
+function decode(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 /** Ник берём из заголовка: паролей в этом продукте нет by design. */
 async function currentUser(req: Request) {
-  const nick = req.headers.get("x-bailanysta-nick");
-  if (!nick) return null;
-  const { data } = await db.from("users").select("*").eq("nick", nick).maybeSingle();
+  const raw = req.headers.get("x-bailanysta-nick");
+  if (!raw) return null;
+  const { data } = await db.from("users").select("*").eq("nick", decode(raw)).maybeSingle();
   return data;
 }
 
@@ -120,7 +129,13 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   const url = new URL(req.url);
-  const seg = url.pathname.replace(/^\/api\/?/, "").replace(/\/$/, "").split("/").filter(Boolean);
+  // pathname отдаёт сегменты в percent-encoded виде — а в них бывают ники.
+  const seg = url.pathname
+    .replace(/^\/api\/?/, "")
+    .replace(/\/$/, "")
+    .split("/")
+    .filter(Boolean)
+    .map(decode);
   const q = url.searchParams;
   const me = await currentUser(req);
 
@@ -134,7 +149,8 @@ Deno.serve(async (req) => {
     // --- Вступление во фракцию (оно же «вход») ------------------------------
     if (req.method === "POST" && seg[0] === "session") {
       const { nick, factionId } = await req.json();
-      const clean = String(nick ?? "").trim().toLowerCase().replace(/[^a-z0-9_а-яё]/gi, "").slice(0, 20);
+      // \p{L} вместо a-zA-Zа-яё: иначе казахские ә, ғ, қ, ң, ө, ұ, ү, і выпадают из ника.
+      const clean = String(nick ?? "").trim().toLowerCase().replace(/[^\p{L}\p{N}_]/gu, "").slice(0, 20);
       if (clean.length < 2) return fail("Ник должен быть от 2 символов");
 
       const { data: existing } = await db.from("users").select("*").eq("nick", clean).maybeSingle();
