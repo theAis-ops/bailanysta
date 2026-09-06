@@ -6,7 +6,7 @@ import Composer from "@/components/Composer";
 import PostCard from "@/components/PostCard";
 import { FeedSkeleton } from "@/components/Skeletons";
 import { api } from "@/lib/api";
-import { useSession } from "@/lib/session";
+import { readSession, useSession } from "@/lib/session";
 import type { Post } from "@/lib/types";
 
 const SCOPES = [
@@ -37,9 +37,12 @@ export default function Feed() {
     setPosts(null);
   }
 
+  // Решение о редиректе принимаем по хранилищу, а не по значению из рендера:
+  // сразу после вступления стор ещё может отдавать пустую сессию, и гость,
+  // который только что выбрал сторону, улетал обратно на экран выбора.
   useEffect(() => {
-    if (!nick) router.replace("/");
-  }, [nick, router]);
+    if (!readSession()) router.replace("/");
+  }, [router]);
 
   useEffect(() => {
     if (!nick) return;
