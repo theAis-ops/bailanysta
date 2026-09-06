@@ -39,23 +39,19 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="mx-auto max-w-[680px] space-y-6 py-10">
       <section className="rise">
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-text">
-          соғыс · война фракций
-        </p>
-        <h1 className="mt-2 font-display text-[clamp(1.5rem,7vw,3rem)] font-extrabold leading-[1.05] wrap-anywhere">
-          Казахстанский&nbsp;IT
-          <br />
-          раскололся на четыре части
+        <p className="text-[12px] uppercase tracking-[0.14em] text-brand">Соғыс · война фракций</p>
+        <h1 className="mt-2 text-[clamp(1.5rem,5vw,2.25rem)] font-bold leading-tight text-text wrap-anywhere">
+          Казахстанский&nbsp;IT раскололся на четыре части
         </h1>
-        <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-muted">
+        <p className="mt-3 text-[14px] leading-relaxed text-muted">
           Здесь пишут посты и забирают территорию. Каждый лайк — очко твоей фракции,
           каждый пост — повод для врагов прийти в комментарии. Выбери сторону.
         </p>
       </section>
 
-      <form onSubmit={join} className="space-y-4">
+      <form onSubmit={join} className="space-y-6">
         <fieldset>
           <legend className="sr-only">Выбор фракции</legend>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -67,43 +63,42 @@ export default function Onboarding() {
                   type="button"
                   onClick={() => setPicked(f.id)}
                   aria-pressed={active}
-                  className={`notch relative overflow-hidden p-4 text-left transition-all duration-200 ${
-                    active ? "scale-[1.01]" : "opacity-75 hover:opacity-100"
-                  }`}
-                  style={{
-                    background: active ? `${f.accent}14` : "var(--panel)",
-                    border: `1px solid ${active ? f.accent : "var(--line)"}`,
-                  }}
+                  className={`card p-4 text-left transition-all ${active ? "" : "hover:border-muted"}`}
+                  // Выбранную сторону подсвечиваем её цветом: рамка, лёгкая заливка, кольцо.
+                  style={
+                    active
+                      ? {
+                          borderWidth: 2,
+                          borderColor: f.accent,
+                          background: `${f.accent}0f`,
+                          boxShadow: `0 0 0 3px ${f.accent}1f`,
+                        }
+                      : undefined
+                  }
                 >
-                  {active && (
+                  <span className="flex items-center gap-2.5">
                     <span
                       aria-hidden
-                      className="hatch pointer-events-none absolute inset-0 opacity-40"
-                      style={{ ["--accent" as string]: f.accent }}
-                    />
-                  )}
-                  <span className="relative flex items-baseline gap-2">
-                    <span className="text-2xl" aria-hidden>{f.emoji}</span>
-                    <span className="font-display text-lg font-bold">{f.name}</span>
-                    <span
-                      className="ml-auto font-mono text-[10px] uppercase tracking-widest"
-                      style={{ color: f.accent }}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[3px] text-[20px]"
+                      style={{ background: `${f.accent}1f` }}
                     >
+                      {f.emoji}
+                    </span>
+                    <span className="text-[15px] font-semibold">{f.name}</span>
+                    <span className="ml-auto text-[11px] uppercase tracking-wider" style={{ color: f.accent }}>
                       {f.code}
                     </span>
                   </span>
-                  <span className="relative mt-2 block text-sm italic text-muted">«{f.motto}»</span>
-                  <span className="relative mt-1.5 block text-[13px] leading-relaxed text-muted">
-                    {f.blurb}
-                  </span>
+                  <span className="mt-2.5 block text-[13px] italic text-muted">«{f.motto}»</span>
+                  <span className="mt-1 block text-[13px] leading-relaxed text-muted">{f.blurb}</span>
                 </button>
               );
             })}
           </div>
         </fieldset>
 
-        <div className="notch panel flex flex-wrap items-center gap-3 p-4">
-          <label htmlFor="nick" className="font-mono text-[11px] uppercase tracking-wider text-muted">
+        <div className="card flex flex-wrap items-center gap-3 p-4">
+          <label htmlFor="nick" className="text-[12px] text-muted">
             Позывной
           </label>
           <input
@@ -112,23 +107,23 @@ export default function Onboarding() {
             onChange={(e) => setNick(e.target.value)}
             placeholder="как тебя звать"
             maxLength={20}
-            className="notch notch-sm min-w-0 flex-1 bg-panel-2 px-3 py-2 font-mono outline-none"
+            className="min-w-0 flex-1 rounded-[3px] border border-line bg-card-2 px-3 py-2 text-[14px] outline-none"
           />
           <button
             type="submit"
             disabled={!picked || nick.trim().length < 2 || busy}
-            className="notch notch-sm bg-accent px-5 py-2 font-mono text-xs uppercase tracking-wider text-black transition-opacity disabled:opacity-30"
+            className="btn-brand px-6 py-2 text-[13px] uppercase"
           >
             {busy ? "Вступаем…" : "Вступить"}
           </button>
         </div>
 
         {error && (
-          <p role="alert" className="font-mono text-xs text-danger">
+          <p role="alert" className="text-[13px] text-danger">
             {error}
           </p>
         )}
-        <p className="font-mono text-[11px] text-muted">
+        <p className="text-[12px] text-muted">
           Пароля нет. Позывной хранится только в этом браузере — введи его снова, чтобы вернуться.
         </p>
       </form>

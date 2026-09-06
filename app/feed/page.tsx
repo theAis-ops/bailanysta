@@ -6,21 +6,16 @@ import Composer from "@/components/Composer";
 import PostCard from "@/components/PostCard";
 import { FeedSkeleton } from "@/components/Skeletons";
 import { api } from "@/lib/api";
+import { SCOPES, setScope, useScope } from "@/lib/feedScope";
 import { readSession, useSession } from "@/lib/session";
 import type { Post } from "@/lib/types";
-
-const SCOPES = [
-  { id: "all", label: "Весь мир" },
-  { id: "faction", label: "Моя фракция" },
-  { id: "enemy", label: "Территория врага" },
-];
 
 export default function Feed() {
   const router = useRouter();
   const session = useSession();
+  const scope = useScope();
   const nick = session?.nick ?? null;
 
-  const [scope, setScope] = useState("all");
   const [tag, setTag] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [posts, setPosts] = useState<Post[] | null>(null);
@@ -37,12 +32,16 @@ export default function Feed() {
     setPosts(null);
   }
 
-  // Решение о редиректе принимаем по хранилищу, а не по значению из рендера:
-  // сразу после вступления стор ещё может отдавать пустую сессию, и гость,
-  // который только что выбрал сторону, улетал обратно на экран выбора.
   useEffect(() => {
     if (!readSession()) router.replace("/");
   }, [router]);
+
+  // Поиск живёт в шапке, а результаты показывает лента — связываем событием.
+  useEffect(() => {
+    const onSearch = (e: Event) => setSearch((e as CustomEvent<string>).detail ?? "");
+    window.addEventListener("bailanysta:search", onSearch);
+    return () => window.removeEventListener("bailanysta:search", onSearch);
+  }, []);
 
   useEffect(() => {
     if (!nick) return;
@@ -85,50 +84,48 @@ export default function Feed() {
 
   if (!session) return <FeedSkeleton />;
 
-  return (
-    <div className="space-y-4">
-      <Composer nick={session.nick} onPosted={(p) => setPosts([p, ...(posts ?? [])])} />
+  const title = SCOPES.find((s) => s.id === scope)?.label ?? "Лента";
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex flex-wrap gap-1 font-mono text-[11px] uppercase tracking-wider">
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-[20px] font-semibold">{title}</h1>
+        <div className="ml-auto flex items-center gap-1 rounded-[3px] border border-line bg-card p-0.5">
           {SCOPES.map((s) => (
             <button
               key={s.id}
               onClick={() => setScope(s.id)}
               aria-pressed={scope === s.id}
-              className={`notch notch-sm border px-2.5 py-1.5 transition-colors ${
-                scope === s.id
-                  ? "border-transparent bg-accent text-black"
-                  : "border-line text-muted hover:text-text"
+              className={`rounded-[2px] px-2.5 py-1.5 text-[12px] font-medium transition-colors ${
+                scope === s.id ? "bg-brand text-white" : "text-muted hover:text-text"
               }`}
             >
               {s.label}
             </button>
           ))}
         </div>
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Поиск по постам"
-          aria-label="Поиск по постам"
-          className="notch notch-sm ml-auto min-w-0 flex-1 border border-line bg-panel px-3 py-1.5 font-mono text-xs outline-none sm:max-w-52"
-        />
       </div>
 
-      {tag && (
-        <div className="flex items-center gap-2 font-mono text-[11px]">
-          <span className="text-muted">разведка по метке</span>
+      {(tag || search) && (
+        <div className="flex flex-wrap items-center gap-2 text-[12px]">
+          <span className="text-muted">{tag ? "разведка по метке" : "поиск"}</span>
           <button
-            onClick={() => setTag(null)}
-            className="notch notch-sm bg-accent px-2.5 py-1 uppercase tracking-wider text-black"
+            onClick={() => { setTag(null); setSearch(""); }}
+            className="rounded-[3px] bg-brand px-2.5 py-1 font-medium text-white"
           >
-            #{tag} ✕
+            {tag ? `#${tag}` : search} ✕
           </button>
         </div>
       )}
 
+      <Composer
+        nick={session.nick}
+        faction={session.faction}
+        onPosted={(p) => setPosts([p, ...(posts ?? [])])}
+      />
+
       {error && (
-        <p role="alert" className="notch panel p-4 font-mono text-xs text-danger">
+        <p role="alert" className="card p-4 text-[13px] text-danger">
           {error}
         </p>
       )}
@@ -136,41 +133,37 @@ export default function Feed() {
       {posts === null && <FeedSkeleton />}
 
       {posts?.length === 0 && (
-        <div className="notch panel p-8 text-center">
-          <p className="font-display text-lg font-bold">Здесь пока тихо</p>
-          <p className="mt-2 text-sm text-muted">
+        <div className="card p-10 text-center">
+          <p className="text-[16px] font-semibold">Здесь пока тихо</p>
+          <p className="mt-1.5 text-[13px] text-muted">
             Напиши первым. Свои поддержат, враги придут — так и работает.
           </p>
         </div>
       )}
 
-      <div className="space-y-3">
-        {posts?.map((p) => (
-          <PostCard
-            key={p.id}
-            post={p}
-            myNick={session.nick}
-            myFaction={session.faction}
-            onTag={setTag}
-            onChange={(next) =>
-              setPosts((cur) =>
-                next
-                  ? (cur ?? []).map((x) => (x.id === p.id ? { ...x, ...next } : x))
-                  : (cur ?? []).filter((x) => x.id !== p.id),
-              )
-            }
-          />
-        ))}
-      </div>
+      {posts?.map((p) => (
+        <PostCard
+          key={p.id}
+          post={p}
+          myNick={session.nick}
+          myFaction={session.faction}
+          onTag={setTag}
+          onChange={(next) =>
+            setPosts((cur) =>
+              next
+                ? (cur ?? []).map((x) => (x.id === p.id ? { ...x, ...next } : x))
+                : (cur ?? []).filter((x) => x.id !== p.id),
+            )
+          }
+        />
+      ))}
 
       {cursor && (
-        <button
-          onClick={loadMore}
-          disabled={loadingMore}
-          className="notch notch-sm w-full border border-line py-3 font-mono text-[11px] uppercase tracking-wider text-muted transition-colors hover:text-text"
-        >
-          {loadingMore ? "Грузим…" : "Показать ещё"}
-        </button>
+        <div className="pt-3 text-center">
+          <button onClick={loadMore} disabled={loadingMore} className="btn-brand px-10 py-2.5 text-[12px] uppercase">
+            {loadingMore ? "Грузим…" : "Показать ещё"}
+          </button>
+        </div>
       )}
     </div>
   );

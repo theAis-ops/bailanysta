@@ -6,7 +6,7 @@ export default function FactionMark({ id, showName = false }: { id: FactionId; s
   const f = byId(id);
   return (
     <span
-      className="notch notch-sm inline-flex items-center gap-1 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider"
+      className="inline-flex items-center gap-1 rounded-[2px] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
       style={{ background: `${f.accent}1f`, color: f.accent }}
     >
       <span aria-hidden>{f.emoji}</span>

@@ -63,16 +63,16 @@ export function useSession(): Session | null {
 
 function themeSnapshot(): Theme {
   try {
-    return (localStorage.getItem(THEME_KEY) as Theme) ?? "dark";
+    return (localStorage.getItem(THEME_KEY) as Theme) ?? "light";
   } catch {
-    return "dark";
+    return "light";
   }
 }
 
-const darkTheme = (): Theme => "dark";
+const lightTheme = (): Theme => "light";
 
 export function useTheme(): Theme {
-  return useSyncExternalStore(subscribe, themeSnapshot, darkTheme);
+  return useSyncExternalStore(subscribe, themeSnapshot, lightTheme);
 }
 
 export function readSession(): Session | null {

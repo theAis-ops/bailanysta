@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import FactionMark from "@/components/FactionMark";
 import Composer from "@/components/Composer";
 import PostCard from "@/components/PostCard";
 import { FeedSkeleton } from "@/components/Skeletons";
@@ -17,6 +16,29 @@ function alertText(n: Notification): string {
   if (n.kind === "like") return `@${n.payload.from} поддержал твой пост`;
   if (n.kind === "comment") return `@${n.payload.from} пришёл в комментарии`;
   return "Сводка с фронта";
+}
+
+/** Пустой экран и экран ошибки выглядят одинаково: заголовок, пояснение, выход. */
+function Notice({
+  title,
+  hint,
+  href,
+  action,
+}: {
+  title: string;
+  hint: string;
+  href: string;
+  action: string;
+}) {
+  return (
+    <div className="card p-8 text-center">
+      <p className="text-[16px] font-semibold">{title}</p>
+      <p className="mt-1 text-[13px] text-muted">{hint}</p>
+      <Link href={href} className="mt-3 inline-block text-[13px] font-semibold text-brand hover:underline">
+        {action}
+      </Link>
+    </div>
+  );
 }
 
 function Profile() {
@@ -49,7 +71,7 @@ function Profile() {
       })
       .catch(() => {
         if (!alive) return;
-        setError("Такого бойца нет. Проверь позывной.");
+        setError("Проверь позывной — в списках такого нет.");
         setPosts([]);
       });
     return () => { alive = false; };
@@ -62,27 +84,17 @@ function Profile() {
 
   if (!target) {
     return (
-      <div className="notch panel p-8 text-center">
-        <p className="font-display text-lg font-bold">Профиль не выбран</p>
-        <p className="mt-2 text-sm text-muted">
-          Открой чей-нибудь профиль из ленты или выбери сторону, чтобы завести свой.
-        </p>
-        <Link href="/" className="mt-3 inline-block font-mono text-xs text-accent-text underline">
-          выбрать фракцию
-        </Link>
-      </div>
+      <Notice
+        title="Профиль не выбран"
+        hint="Открой чей-нибудь профиль из ленты или выбери сторону, чтобы завести свой."
+        href="/"
+        action="Выбрать фракцию"
+      />
     );
   }
 
   if (error) {
-    return (
-      <div className="notch panel p-8 text-center">
-        <p className="font-display text-lg font-bold">{error}</p>
-        <Link href="/feed" className="mt-3 inline-block font-mono text-xs text-accent-text underline">
-          вернуться в ленту
-        </Link>
-      </div>
-    );
+    return <Notice title="Боец не найден" hint={error} href="/feed" action="Вернуться в ленту" />;
   }
 
   if (!user || !stats) return <FeedSkeleton />;
@@ -90,17 +102,32 @@ function Profile() {
   const faction = byId(user.faction_id);
 
   return (
-    <div className="space-y-6">
-      <header className="notch panel p-5" style={{ borderLeft: `3px solid ${faction.accent}` }}>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-3xl" aria-hidden>{faction.emoji}</span>
-          <h1 className="font-display text-2xl font-extrabold wrap-anywhere">@{user.nick}</h1>
-          <FactionMark id={user.faction_id} showName />
-          {user.is_bot && (
-            <span className="font-mono text-[10px] uppercase tracking-wider text-muted">бот</span>
-          )}
+    <div className="space-y-4">
+      <header className="card p-5">
+        <div className="flex items-start gap-3">
+          <span
+            aria-hidden
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[3px] text-[28px]"
+            style={{ background: `${faction.accent}1f` }}
+          >
+            {faction.emoji}
+          </span>
+          <div className="min-w-0">
+            <h1 className="text-[20px] font-semibold wrap-anywhere">@{user.nick}</h1>
+            <div className="mt-0.5 flex flex-wrap items-center gap-2">
+              <span className="text-[13px] font-medium" style={{ color: faction.accent }}>
+                {faction.name}
+              </span>
+              {user.is_bot && (
+                <span className="rounded-[3px] border border-line px-1.5 py-0.5 text-[11px] text-muted">
+                  бот
+                </span>
+              )}
+            </div>
+          </div>
         </div>
-        {user.bio && <p className="mt-2 text-sm text-muted">{user.bio}</p>}
+
+        {user.bio && <p className="mt-3 text-[13px] text-muted">{user.bio}</p>}
 
         <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
@@ -109,10 +136,10 @@ function Profile() {
             { k: "Вклад", v: stats.contribution },
             { k: "Предательств", v: stats.betrayals },
           ].map((s) => (
-            <div key={s.k} className="notch notch-sm bg-panel-2 p-3">
-              <dt className="font-mono text-[10px] uppercase tracking-wider text-muted">{s.k}</dt>
+            <div key={s.k} className="rounded-[3px] border border-line bg-card-2 p-3">
+              <dt className="text-[11px] uppercase tracking-wide text-muted">{s.k}</dt>
               <dd
-                className="mt-1 font-display text-lg font-bold"
+                className="mt-1 text-[17px] font-bold"
                 style={s.accent ? { color: faction.accent } : undefined}
               >
                 {s.v}
@@ -121,7 +148,7 @@ function Profile() {
           ))}
         </dl>
 
-        <p className="mt-3 font-mono text-[11px] text-muted">
+        <p className="mt-3 text-[12px] text-muted">
           в строю с {new Date(user.created_at).toLocaleDateString("ru-RU")}
           {stats.betrayals > 0 && " · лайкает врагов, но мы никому не скажем"}
         </p>
@@ -129,7 +156,7 @@ function Profile() {
         {mine && (
           <button
             onClick={() => { clearSession(); router.push("/"); }}
-            className="notch notch-sm mt-4 border border-line px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-muted hover:text-danger"
+            className="mt-4 rounded-[3px] border border-line px-3 py-1.5 text-[12px] text-muted transition-colors hover:border-danger hover:text-danger"
           >
             Сменить сторону
           </button>
@@ -137,13 +164,13 @@ function Profile() {
       </header>
 
       {mine && alerts.length > 0 && (
-        <section>
-          <h2 className="font-display text-lg font-bold">Сводки с фронта</h2>
-          <ul className="mt-2 divide-y divide-line border border-line">
+        <section className="card">
+          <h2 className="border-b border-line p-4 text-[15px] font-semibold">Сводки с фронта</h2>
+          <ul className="divide-y divide-line">
             {alerts.slice(0, 8).map((n) => (
-              <li key={n.id} className="flex gap-3 px-3 py-2 text-sm">
+              <li key={n.id} className="flex gap-3 px-4 py-2.5 text-[13px]">
                 <span>{alertText(n)}</span>
-                <time className="ml-auto font-mono text-[11px] text-muted">{timeAgo(n.created_at)}</time>
+                <time className="ml-auto shrink-0 text-[12px] text-muted">{timeAgo(n.created_at)}</time>
               </li>
             ))}
           </ul>
@@ -153,6 +180,7 @@ function Profile() {
       {mine && myNick && (
         <Composer
           nick={myNick}
+          faction={user.faction_id}
           onPosted={(p) => {
             setPosts([p, ...(posts ?? [])]);
             setStats((cur) => (cur ? { ...cur, posts: cur.posts + 1 } : cur));
@@ -161,10 +189,15 @@ function Profile() {
       )}
 
       <section className="space-y-3">
-        <h2 className="font-display text-lg font-bold">Посты</h2>
+        <h2 className="text-[15px] font-semibold">Посты</h2>
         {posts === null && <FeedSkeleton count={2} />}
         {posts?.length === 0 && (
-          <p className="notch panel p-6 text-center text-sm text-muted">Здесь ещё пусто.</p>
+          <div className="card p-8 text-center">
+            <p className="text-[16px] font-semibold">Здесь ещё пусто</p>
+            <p className="mt-1 text-[13px] text-muted">
+              {mine ? "Первый пост за тобой." : "Боец пока молчит."}
+            </p>
+          </div>
         )}
         {posts?.map((p) => (
           <PostCard
