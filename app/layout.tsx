@@ -1,20 +1,27 @@
 import type { Metadata } from "next";
-import { Unbounded, Manrope, JetBrains_Mono } from "next/font/google";
+import { IBM_Plex_Mono, Onest, Unbounded } from "next/font/google";
 import Shell from "@/components/Shell";
 import "./globals.css";
 
+/**
+ * Шрифты подбирались с проверкой на казахский алфавит. Unbounded даёт
+ * характер заголовкам, но букв ә, ғ, қ, ң, ө, ұ, ү в нём нет — поэтому
+ * подстраховываем его Onest, а весь текст, который вводят пользователи,
+ * набираем Onest и IBM Plex Mono: они покрывают алфавит целиком.
+ */
 const display = Unbounded({
-  subsets: ["cyrillic", "latin"],
+  subsets: ["cyrillic", "cyrillic-ext", "latin"],
   weight: ["400", "600", "800"],
-  variable: "--font-display",
+  variable: "--font-unbounded",
 });
-const body = Manrope({
-  subsets: ["cyrillic", "latin"],
-  variable: "--font-body",
+const body = Onest({
+  subsets: ["cyrillic", "cyrillic-ext", "latin"],
+  variable: "--font-onest",
 });
-const mono = JetBrains_Mono({
-  subsets: ["cyrillic", "latin"],
-  variable: "--font-mono",
+const mono = IBM_Plex_Mono({
+  subsets: ["cyrillic", "cyrillic-ext", "latin"],
+  weight: ["400", "600"],
+  variable: "--font-plex-mono",
 });
 
 export const metadata: Metadata = {

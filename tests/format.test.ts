@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { splitTags, timeAgo } from "../lib/format";
+import { plural, splitTags, timeAgo } from "../lib/format";
 
 const agoBy = (ms: number) => new Date(Date.now() - ms).toISOString();
 
@@ -37,5 +37,28 @@ describe("splitTags", () => {
 
   it("текст без меток остаётся одним куском", () => {
     expect(splitTags("совсем обычный текст")).toEqual([{ text: "совсем обычный текст" }]);
+  });
+});
+
+describe("plural", () => {
+  it("ставит единственное число после единицы", () => {
+    expect(plural(1, "пост", "поста", "постов")).toBe("1 пост");
+    expect(plural(21, "пост", "поста", "постов")).toBe("21 пост");
+  });
+
+  it("ставит родительный единственного после двух-четырёх", () => {
+    expect(plural(3, "пост", "поста", "постов")).toBe("3 поста");
+    expect(plural(104, "пост", "поста", "постов")).toBe("104 поста");
+  });
+
+  it("ставит множественное после пяти и в подростковом диапазоне", () => {
+    expect(plural(5, "пост", "поста", "постов")).toBe("5 постов");
+    expect(plural(11, "пост", "поста", "постов")).toBe("11 постов");
+    expect(plural(14, "пост", "поста", "постов")).toBe("14 постов");
+    expect(plural(112, "пост", "поста", "постов")).toBe("112 постов");
+  });
+
+  it("ноль — множественное", () => {
+    expect(plural(0, "боец", "бойца", "бойцов")).toBe("0 бойцов");
   });
 });

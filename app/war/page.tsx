@@ -6,6 +6,7 @@ import FactionMark from "@/components/FactionMark";
 import { WarSkeleton } from "@/components/Skeletons";
 import { api } from "@/lib/api";
 import { byId } from "@/lib/factions";
+import { plural } from "@/lib/format";
 import type { Fighter, WarScore } from "@/lib/types";
 
 export default function War() {
@@ -56,7 +57,8 @@ export default function War() {
                   />
                 </div>
                 <p className="mt-2 font-mono text-[11px] text-muted">
-                  {share.toFixed(1)}% территории · {f.posts} постов · {f.humans} живых бойцов
+                  {share.toFixed(1)}% территории · {plural(Number(f.posts), "пост", "поста", "постов")} ·{" "}
+                  {plural(Number(f.humans), "живой боец", "живых бойца", "живых бойцов")}
                 </p>
                 <p className="mt-1 text-[13px] italic text-muted">«{f.motto}»</p>
               </li>
