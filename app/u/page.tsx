@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import FactionMark from "@/components/FactionMark";
+import Composer from "@/components/Composer";
 import PostCard from "@/components/PostCard";
 import { FeedSkeleton } from "@/components/Skeletons";
 import { api } from "@/lib/api";
@@ -58,6 +59,20 @@ function Profile() {
     if (!mine || !myNick) return;
     api.notifications(myNick).then((d) => setAlerts(d.notifications)).catch(() => {});
   }, [mine, myNick]);
+
+  if (!target) {
+    return (
+      <div className="notch panel p-8 text-center">
+        <p className="font-display text-lg font-bold">Профиль не выбран</p>
+        <p className="mt-2 text-sm text-muted">
+          Открой чей-нибудь профиль из ленты или выбери сторону, чтобы завести свой.
+        </p>
+        <Link href="/" className="mt-3 inline-block font-mono text-xs text-accent-text underline">
+          выбрать фракцию
+        </Link>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -133,6 +148,16 @@ function Profile() {
             ))}
           </ul>
         </section>
+      )}
+
+      {mine && myNick && (
+        <Composer
+          nick={myNick}
+          onPosted={(p) => {
+            setPosts([p, ...(posts ?? [])]);
+            setStats((cur) => (cur ? { ...cur, posts: cur.posts + 1 } : cur));
+          }}
+        />
       )}
 
       <section className="space-y-3">
