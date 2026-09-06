@@ -148,7 +148,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             {!onboarding && (
               <button
                 onClick={() => setSearchOpen((v) => !v)}
-                aria-label="Искать по постам"
+                aria-label={searchOpen ? "Закрыть поиск" : "Открыть поиск"}
                 aria-expanded={searchOpen}
                 className="flex h-9 w-9 items-center justify-center rounded-full text-muted transition-colors hover:bg-card-2 hover:text-text"
               >
