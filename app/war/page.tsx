@@ -27,7 +27,7 @@ export default function War() {
     <div className="space-y-8">
       <header>
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-text">табло</p>
-        <h1 className="mt-1 font-display text-3xl font-extrabold">Соғыс</h1>
+        <h1 className="mt-1 font-display text-[clamp(1.5rem,6vw,1.875rem)] font-extrabold">Соғыс</h1>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
           Территория делится по лайкам: каждый лайк засчитывается фракции автора поста.
           Поэтому лайк врагу — это подарок врагу.

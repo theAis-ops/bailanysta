@@ -94,7 +94,7 @@ function Profile() {
       <header className="notch panel p-5" style={{ borderLeft: `3px solid ${faction.accent}` }}>
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-3xl" aria-hidden>{faction.emoji}</span>
-          <h1 className="font-display text-2xl font-extrabold">@{user.nick}</h1>
+          <h1 className="font-display text-2xl font-extrabold wrap-anywhere">@{user.nick}</h1>
           <FactionMark id={user.faction_id} showName />
           {user.is_bot && (
             <span className="font-mono text-[10px] uppercase tracking-wider text-muted">бот</span>

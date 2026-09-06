@@ -44,7 +44,7 @@ export default function Onboarding() {
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-text">
           соғыс · война фракций
         </p>
-        <h1 className="mt-2 font-display text-4xl font-extrabold leading-[1.05] sm:text-5xl">
+        <h1 className="mt-2 font-display text-[clamp(1.5rem,7vw,3rem)] font-extrabold leading-[1.05] wrap-anywhere">
           Казахстанский&nbsp;IT
           <br />
           раскололся на четыре части
